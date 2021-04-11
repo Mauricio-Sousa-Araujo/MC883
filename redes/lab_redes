@@ -1,0 +1,19 @@
+Nesse sentido, os dois primeiros octetos de um endereço IP podem ser usados para identificar a rede
+
+Além disso, os navegadores web usam o protocolo HTTP que utiliza sockets stream para obter as páginas
+
+
+HTTP e FTP - Camada de aplicação
+
+Sockets Datagram -  Usa UDP
+Stream Sockets -  TCP
+
+
+ O kernel
+constrói a Camada de Transporte e a Camada de Internet para você e o hardware faz a
+Camada de Acesso à Rede. Ah, a tecnologia moderna.
+
+Camada de Aplicação (telnet, ftp, etc.)
+Camada de Transporte Host-para-Host (TCP, UDP)
+Camada de Internet (IP e roteamento)
+Camada de Acesso à Rede (Ethernet, Wi-Fi, ou outros)

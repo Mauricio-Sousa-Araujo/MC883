@@ -1,0 +1,5 @@
+npm init -y
+npm i pg #Baixa os pacotes
+#npm list
+
+node_modules/.bin/sequelize model:generate --name User --attributes firstName:string,lastName:string,email:string

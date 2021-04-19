@@ -2,24 +2,27 @@
   "development": {
     "username": "projeto01",
     "password": "projeto01",
-    "database": "perfil",
-    "host": "database",
-    "port": 5432,
-    "dialect": "postgres"
-   
+    "database": "projeto01",
+    "host": "projeto01_db",
+    "dialect": "postgres",
+    "port" : 5432,
+    "define": { 
+      "freezeTableName": true
+    } 
+
   },
   "test": {
     "username": "root",
     "password": null,
     "database": "database_test",
     "host": "127.0.0.1",
-    "dialect": "postgres"
+    "dialect": "mysql"
   },
   "production": {
     "username": "root",
     "password": null,
     "database": "database_production",
     "host": "127.0.0.1",
-    "dialect": "postgres"
+    "dialect": "mysql"
   }
 }

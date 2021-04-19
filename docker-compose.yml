@@ -3,17 +3,17 @@ version: '3.3'
 services:
   db:
     build : ./db
-    container_name: 'database'
+    container_name: 'projeto01_db'
     ports:
       #Por default POSTGRES sobe na porta 5432
-      - '5000:5432'
+      - '5057:5432'
     environment:
       - POSTGRES_USER=projeto01
       - POSTGRES_PASSWORD=projeto01
-      - POSTGRES_DB=perfil
+      - POSTGRES_DB=projeto01
   app:
     build: ./app
-    container_name: nodejs
+    container_name: api_nodejs
     #Por default nodejs sobe na porta 8080 
     ports:
       - '8080:8080'

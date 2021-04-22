@@ -3,19 +3,26 @@
 
 
 const express = require('express');
-const PORT = 8080;
-const HOST = '0.0.0.0';
+const PORT = 5000;
+const HOST = 'localhost';
 const tables  = require('./models');
 // App
 const app = express();
+
 app.get('/', (req, res) => {
-  tables.Perfil.findAll().then(notes => res.json(notes));
- 
+  tables.Perfil.findAll().then((data) => {
+    res.json(data);
+  });
 });
 
 
-app.listen(PORT, HOST);
-console.log(`Running on http://${HOST}:${PORT}`);
+
+app.listen(PORT, () => {
+  //   if (err) {
+  //     return console.error(err);
+  //   }
+    return console.log(`server is listening on ${PORT}`);
+  });
 
 
 /*

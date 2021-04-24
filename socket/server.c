@@ -6,35 +6,26 @@
 #include <netinet/in.h> /* struct sockaddr_in, struct sockaddr */
 #include <netdb.h> /* struct hostent, gethostbyname */
 
-
-
 #define PORT 8001
 #define QUEUE 20
-#define MAXLINE 50
+#define MAX 4096
 
-
-char * requestAPI(char *message_request );
+int requestAPI(char *message_request, char *response );
 
 void error(const char *msg) { perror(msg); exit(0); }
 
 
 int main(int argc, char **argv)
 {
-    
     struct hostent *server;
-
-    int sock_fd, new_fd;
-    pid_t childpid;
+    int sock_fd, new_fd, sock_api;
     socklen_t clilen;
     struct sockaddr_in cliaddr, servaddr;
-    char *message;
-
-    pid_t pid;
-
+    char message[MAX];
     int bytes, received, total;
     char request[1024];
 
-    //Criamos o socket
+    /* connect the socket */
     sock_fd = socket (AF_INET, SOCK_STREAM, 0);
     if (sock_fd == -1)  printf("Could not create socket");
 
@@ -47,76 +38,48 @@ int main(int argc, char **argv)
     //Porta Network Byte Order
     servaddr.sin_port = htons (PORT);
 
-    //Vincula o socket(sock_fd) a um endereço IP e e porta  
+    //Vincula o socket a um endereço IP e e porta  
     if(bind(sock_fd, (struct sockaddr *) &servaddr, sizeof(servaddr))<0)  printf("bind failed");
 
-    
+    //listen até no máximo QUEUE 
     listen(sock_fd, QUEUE);
 
 
     for ( ; ; ) {
         clilen = sizeof(cliaddr);
         new_fd = accept(sock_fd, (struct sockaddr *) &cliaddr, &clilen);        
+        
         if (new_fd<0) perror("accept request failed");
         
-         if (!fork()) { // this is the child process
-            close(sock_fd); // child doesn't need the listener
-
             /* receive the request  */
             memset(request, 0, sizeof(request));
             total = sizeof(request)-1;
             received = 0;
-
-            do {
-                bytes = read(new_fd, request+received, total-received);
-                
-                if (bytes < 0)
-                    error("ERROR reading response from socket");
-                if (bytes == 0)
-                    break;
-                received+=bytes;
-
-            } while (received < total);
-            printf("%s", request);
-            if (received == total){
+            read(new_fd, request, total);
             
-                error("ERROR storing complete response from socket");
-            }
-            if (!fork()) { // this is the child process
-                message = requestAPI(request);
-            }
-            printf("%s", message);
+            /* send the request to api and take the received  */
+            sock_api = requestAPI(request, message);
+            printf("Message received: \n%s\n", message);
             
             write(new_fd , message , strlen(message));     
+
+            close(sock_api);
             close(new_fd);
-   
-            exit(0);
-             /* parent closes connected socket */
-         }
     }
-
-    
-
     
 }
 
 
-char * requestAPI(char *message_request ){
+int requestAPI(char *message_request, char *response ){
 
-      /* first what are we going to send and where are we going to send it? */
-    int portno =        8001; //Porta onde a api(interface database) está escutando
+    /* Port where the api nodejs listen and ip address*/
+    int portno =        5000; 
     char *host =        "localhost";
-    //char *message_request = "GET / HTTP/1.0\r\n\r\n";
 
     struct hostent *server;
     struct sockaddr_in serv_addr;
     int sockfd, bytes, sent, received, total;
-    char *message;
-    char *response = malloc (sizeof (char) * 4096);
-
-   
-    /* fill in the parameters */
-    message=message_request;
+    
     printf("Request:\n%s\n", message_request);
 
     /* create the socket */
@@ -134,48 +97,25 @@ char * requestAPI(char *message_request ){
     memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
 
     /* connect the socket */
-
     if (connect(sockfd, (struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR connecting");
 
-
     /* send the request */
-    total = strlen(message);
+    total = strlen(message_request);
     sent = 0;
-    do {
-        bytes = write(sockfd,message+sent,total-sent);
-        if (bytes < 0)
-            error("ERROR writing message to socket");
-        if (bytes == 0)
-            break;
-        sent+=bytes;
-    } while (sent < total);
-
-    /* receive the response */
+    write(sockfd, message_request, total);
+    
+    /* receive the request */
     memset(response, 0, sizeof(response));
     total = sizeof(response)-1;
     received = 0;
-
-    do {
-        bytes = read(sockfd, response+received, total-received);
-        
-        if (bytes < 0)
-            error("ERROR reading response from socket");
-        if (bytes == 0)
-            break;
+    do{
+        bytes = read(sockfd, response+received, total);
         received+=bytes;
+        
+    }while(bytes>0);
 
-    } while (received < total);
-
-    if (received == total)
-        error("ERROR storing complete response from socket147852");
+    return sockfd; 
     
-    /* close the socket */
-    close(sockfd);
-
-    /* process response */
-    return response ;
-
-
 }
 

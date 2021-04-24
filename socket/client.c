@@ -10,10 +10,9 @@ void error(const char *msg) { perror(msg); exit(0); }
 
 int main(int argc,char *argv[])
 {
-    /* first what are we going to send and where are we going to send it? */
     int portno =        8001;
     char *host =        "localhost";
-    char *message_fmt = "GET / HTTP/1.0\r\n\r\n";
+    char *message_fmt = "GET / HTTP/1.0\r\n\r\n";//Hard code
 
     struct hostent *server;
     struct sockaddr_in serv_addr;
@@ -76,12 +75,11 @@ int main(int argc,char *argv[])
     //if (received == total)
       //  error("ERROR storing complete response from socket");
 
+    /* process response */
+    printf("Response:\n%s\n", response);
+    
     /* close the socket */
     close(sockfd);
-
-    /* process response */
-    printf("Response:\n%s\n",response);
-
 
     return 0;
 }

@@ -6,24 +6,26 @@
 #include <netinet/in.h> /* struct sockaddr_in, struct sockaddr */
 #include <netdb.h> /* struct hostent, gethostbyname */
 
-void error(const char *msg) { perror(msg); exit(0); }
 
+void error(const char *msg) { perror(msg); exit(0); }
+char *buildMessage(int argc, char *argv[ ]);
+int sizeMessage(int argc, char *argv[ ]);
 int main(int argc,char *argv[])
 {
-    int portno =        8001;
-    char *host =        "localhost";
-    char *message_fmt = "GET / HTTP/1.0\r\n\r\n";//Hard code
-
+    int portno = (argc>2 && atoi(argv[2])>0)?atoi(argv[2]):8001;
+    char *host = ( argc>1 && strlen(argv[1])>0)?argv[1]:"localhost";
+    //char *message_fmt = "GET /oi HTTP/1.0\r\n\r\n";//Hard code
+    //char *message_fmt = "POST / HTTP/1.1 \r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: 22\r\n\r\nid=dsads&name=mauricio";
     struct hostent *server;
     struct sockaddr_in serv_addr;
     int sockfd, bytes, sent, received, total;
-    char message[1024], response[4096];
+    char *message, response[4096];
 
-   
-    /* fill in the parameters */
-    sprintf(message, message_fmt,argv[1],argv[2]);
-    printf("Request:\n%s\n%s\n",argv[1], argv[2]);
+    message = buildMessage(argc, argv);
+    /* What are we going to send? */
+    printf("Request:\n%s\n",message);
 
+    
     /* create the socket */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) error("ERROR opening socket");
@@ -82,4 +84,89 @@ int main(int argc,char *argv[])
     close(sockfd);
 
     return 0;
+}
+
+
+char *buildMessage(int argc, char *argv[ ]){
+
+    char  *message=malloc(sizeMessage(argc,argv));
+    if(!strcmp(argv[3],"GET"))
+    {
+        if(argc>5)
+            sprintf(message,"%s %s%s%s HTTP/1.1\r\n",
+                strlen(argv[3])>0?argv[3]:"GET",               /* method         */
+                strlen(argv[4])>0?argv[4]:"/",                 /* path           */
+                strlen(argv[5])>0?"?":"",                      /* ?              */
+                strlen(argv[5])>0?argv[5]:"");                 /* query string   */
+        else
+            sprintf(message,"%s %s HTTP/1.1\r\n",
+                strlen(argv[3])>0?argv[3]:"GET",               /* method         */
+                strlen(argv[4])>0?argv[4]:"/");                /* path           */
+        for(int i=6;i<argc;i++)                                    /* headers        */
+            {strcat(message,argv[i]);strcat(message,"\r\n");}
+        strcat(message,"\r\n");                                /* blank line     */
+    }
+    else
+    {
+        sprintf(message,"%s %s HTTP/1.1\r\n",
+            strlen(argv[3])>0?argv[3]:"POST",                  /* method         */
+            strlen(argv[4])>0?argv[4]:"/");                    /* path           */
+        for(int i=6;i<argc;i++)                                    /* headers        */
+            {strcat(message,argv[i]);strcat(message,"\r\n");}
+        if(argc>5){
+            sprintf(message+strlen(message),"Content-Type: application/json\r\n");
+            sprintf(message+strlen(message),"Content-Length: %ld\r\n",strlen(argv[5]));
+            strcat(message,"\r\n");                                /* blank line     */
+            for(int i=5;i<argc-1;i++){
+                strcat(message,argv[i]);                                /* body           */
+                strcat(message,"&");
+            }
+            strcat(message, argv[argc-1]);
+        
+        }
+        
+    }
+
+    return message;
+}
+
+int sizeMessage(int argc, char *argv[ ]){
+
+    int message_size=0;
+    if(!strcmp(argv[3],"GET"))
+    {
+        message_size+=strlen("%s %s%s%s HTTP/1.1\r\n");        /* method         */
+        message_size+=strlen(argv[3]);                         /* path           */
+        message_size+=strlen(argv[4]);                         /* headers        */
+        if(argc>5)
+            message_size+=strlen(argv[5]);                     /* query string   */
+        for(int i=6;i<argc;i++)                                    /* headers        */
+            message_size+=strlen(argv[i])+strlen("\r\n");
+        message_size+=strlen("\r\n");                          /* blank line     */
+    }
+    else
+    {
+        message_size+=strlen("%s %s HTTP/1.1\r\n");
+        message_size+=strlen(argv[3]);                         /* method         */
+        message_size+=strlen(argv[4]);                         /* path           */
+        for(int i=6;i<argc;i++)                                    /* headers        */
+            message_size+=strlen(argv[i])+strlen("\r\n");
+        if(argc>5){
+            message_size+=strlen("Content-Type: application/json\r\n");
+            message_size+=strlen("Content-Length: %d\r\n")+10; /* content length */
+        }
+        message_size+=strlen("\r\n");                          /* blank line     */
+        
+        if(argc>5){
+            for(int i=5;i<argc-1;i++){
+                message_size+= strlen(argv[i]);    
+                message_size+= strlen("&");                        /* body           */
+            }      
+            message_size+= strlen(argv[argc-1]);
+        }            
+
+    }
+
+    /* allocate space for the message */
+    return message_size;
 }

@@ -26,5 +26,22 @@ De forma breve, utilizamos docker para encapsular nossas aplicações(api e data
 - gcc -o client.o client.c
 - gcc -o server.o server.c
 - docker-compose build --no-cache && docker-compose up          #Subir aplicação
-- docker rmi $(docker images -f "dangling=true" -q)             #Excluir execessos de container com none
+- docker rmi $(docker images -f "dangling=true" -q)             #Excluir execessos de container denominados none
+
+
+#########################Casos de Uso###########################
+
+#dado o email de um perfil, retornar suas informações
+- ./client.o localhost 8001 GET /email/maria_silva@gmail.com
+
+#lista todas as pessoas (email, nome e curso) formadas em um determinado ano;
+- ./client.o localhost 8001 GET /ano/2015-12-01
+
+#Lista todas as pessoas (email e nome) formadas em um determinado curso   #Ci%C3%AAncia%20da%20Computa%C3%A7%C3%A3o= Ciência da Computação
+- ./client.o localhost 8001 GET /curso/Ci%C3%AAncia%20da%20Computa%C3%A7%C3%A3o 
+
+#Lista todas as informações de todos os perfis
+- ./client.o "" "" GET /
+
+
 

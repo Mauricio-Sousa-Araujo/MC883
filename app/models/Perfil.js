@@ -14,13 +14,10 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   Perfil.init({
-    id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-        allowNull: false
-    },
-    email: DataTypes.STRING,
+    email:{ type:DataTypes.STRING,
+            primaryKey: true,
+            allowNull: false
+          },
     nome: DataTypes.STRING,
     residencia : DataTypes.STRING,
     formacao_academica : DataTypes.STRING,

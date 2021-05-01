@@ -1,8 +1,7 @@
 INSERT INTO "Perfil"
     VALUES(
-         1,
         'maria_silva@gmail.com',
-        'Maria Sobrenome: Silva',
+        'Maria Silva',
         'Campinas',
         'Ciência da Computação',
         '2015-12-01',

@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   };
+  
   Perfil.init({
     email:{ type:DataTypes.STRING,
             primaryKey: true,
@@ -21,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
     nome: DataTypes.STRING,
     residencia : DataTypes.STRING,
     formacao_academica : DataTypes.STRING,
-    ano_formatura: DataTypes.DATE,
+    ano_formatura: DataTypes.STRING,
     habilidades:DataTypes.ARRAY(DataTypes.TEXT),
     experiencias: DataTypes.ARRAY(DataTypes.TEXT),
     createdAt: DataTypes.DATE,
@@ -32,5 +33,6 @@ module.exports = (sequelize, DataTypes) => {
     modelName: "Perfil",
     freezeTableName: true,
   });
+
   return Perfil;
 };

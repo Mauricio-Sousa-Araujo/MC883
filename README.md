@@ -27,21 +27,35 @@ De forma breve, utilizamos docker para encapsular nossas aplicações(api e data
 - gcc -o server.o server.c
 - docker-compose build --no-cache && docker-compose up          #Subir aplicação
 - docker rmi $(docker images -f "dangling=true" -q)             #Excluir execessos de container denominados none
+- docker container prune 
 
 
 #########################Casos de Uso###########################
-
+##GETs
 #dado o email de um perfil, retornar suas informações
 - ./client.o localhost 8001 GET /email/maria_silva@gmail.com
 
 #lista todas as pessoas (email, nome e curso) formadas em um determinado ano;
-- ./client.o localhost 8001 GET /ano/2015-12-01
+- ./client.o localhost 8001 GET /ano/2015
 
-#Lista todas as pessoas (email e nome) formadas em um determinado curso   #Ci%C3%AAncia%20da%20Computa%C3%A7%C3%A3o= Ciência da Computação
-- ./client.o localhost 8001 GET /curso/Ci%C3%AAncia%20da%20Computa%C3%A7%C3%A3o 
+#Lista todas as pessoas (email e nome) formadas em um determinado curso   
+- ./client.o localhost 8001 GET /curso/ "curso=Sistemas de Informação"
 
 #Lista todas as informações de todos os perfis
 - ./client.o "" "" GET /
 
+#Lista todas as pessoas (email e nome) que possuam uma determinada habilidade;
+- ./client.o localhost 8001 GET /habilidade/ "habilidade=Jurista"
 
+##POST
+#Cadastrar um novo perfil utilizando o email como identificador
+- ./client.o "" "" POST / "email=mauricio_ploc@hotmail.com" "nome=Mauricio de Sousa" "habilidades=Análise de Dados; Internet das Coisas; Computação em Nuvem"
+- ./client.o "" "" POST / "email=andre_ploc@hotmail.com" "nome=André de Sousa" "experiencias=Trabalhei 10 anos com Pandas; Trabalhei 5 anos com Python"
 
+##PUT
+#Acrescenta uma nova experiência profissional em um perfil
+- ./client.o "" "" PUT /experiencia/mauricio_ploc@hotmail.com "experiencia=Trabalhei 10 anos com ferramentas"
+
+##Delete
+#Deleta um perfil pelo email
+- ./client.o localhost 8001 DELETE /delete/mauricio_ploc@hotmail.com

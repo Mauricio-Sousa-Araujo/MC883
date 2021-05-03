@@ -3,10 +3,9 @@ CREATE TABLE "Perfil" (
     nome        varchar(200) NOT NULL,
     residencia  varchar,
     formacao_academica  varchar(40),
-    ano_formatura  date,
-    habilidades   varchar[],
-    experiencias  varchar[],
-    "createdAt" Date,
-    "updatedAt" Date
+    ano_formatura  varchar(5),
+    habilidades   text[],
+    experiencias  text[],
+    "createdAt" date not null default CURRENT_DATE,
+    "updatedAt" date not null default CURRENT_DATE
 );
-

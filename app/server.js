@@ -1,7 +1,6 @@
 
 'use strict';
-
-
+var Sequelize = require ('sequelize');
 const express = require('express');
 const PORT = 5000;
 const HOST = 'localhost';
@@ -10,43 +9,63 @@ const Perfil = tables.Perfil;
 // App
 const app = express();
 app.use(express.json());
-//app.use(express.urlencoded({ extended: true }));
 
 
 //listar todas as informações de todos os perfis
 app.get('/', (req, res) => {
   Perfil.findAll().then((data) => {
     res.json(data);
-  });
+  }).catch(err =>
+    res.send(err.message)
+  );
 });
 
+//Acrescenta uma nova experiência profissional em um perfil;
+app.put('/experiencia/:email', (req, res) => {
+  
+  Perfil.update(
+    {experiencias: Sequelize.fn('array_append', Sequelize.col('experiencias'), req.body.experiencia)},
+    {
+      where: {
+        email: req.params['email']
+    }
+  }).then((data) => {
+    res.json(data);
+  }).catch(err =>
+    res.json(err)
+  );
+});
 
 //Lista todas as pessoas (email e nome) formadas em um determinado curso;
-app.get('/curso/:curso', (req, res) => {
+app.get('/curso/', (req, res) => {
   
   Perfil.findAll({
     attributes: ['email',  'nome'],
     where: {
-      formacao_academica: req.params['curso']
+      formacao_academica: req.body.curso
     }
   }).then((data) => {
     res.json(data);
-  });
+  }).catch(err =>
+    res.json(err.errors)
+  );
 });
 
 //lista todas as pessoas (email e nome) que possuam uma determinada habilidade;
-// app.get('/habilidade/:habilidade', (req, res) => {
-  
-//   Perfil.findAll({
-//     attributes: ['email',  'nome'],
-//     where: {
-//       habilidades:{
-//         [Op.in]:[req.params['curso']]
-//     }
-//   }).then((data) => {
-//     res.json(data);
-//   });
-// });
+app.get('/habilidade/', (req, res) => {  
+  Perfil.findAll({
+    attributes: ['email',  'nome'],
+    where: {
+      habilidades:{
+        [Sequelize.Op.contains]:[req.body.habilidade]
+      }
+    }
+    }).then((data) => {
+        res.json(data);
+  }).catch(err =>
+    res.json(err.errors)
+  );
+});
 
 //lista todas as pessoas (email, nome e curso) formadas em um determinado ano;
 app.get('/ano/:ano', (req, res) => {
@@ -58,10 +77,12 @@ app.get('/ano/:ano', (req, res) => {
     }
   }).then((data) => {
     res.json(data);
-  });
+  }).catch(err =>
+    res.json(err.errors)
+  );
 });
 
-//dado o email de um perfil, retornar suas informações
+//Dado o email de um perfil, retornar suas informações
 app.get('/email/:email', (req, res) => {
   
   Perfil.findAll({
@@ -70,15 +91,13 @@ app.get('/email/:email', (req, res) => {
     }
   }).then((data) => {
     res.json(data);
-  });
+  }).catch(err =>
+    res.json(err.errors)
+  );
 });
 
-
-
-
 //Create
-app.post('/', function(req, res) {
-    console.log(req.body);
+app.post('/', (req, res) => {
 
   const resultadoCreate = Perfil.create({
         email: req.body.email,
@@ -87,61 +106,30 @@ app.post('/', function(req, res) {
         formacao_academica: req.body.formacao_academica,
         ano_formatura : req.body.ano_formatura,
         habilidades:req.body.habilidades,
-        experiencias:req.body.experiencias,
-  })
+        experiencias:req.body.experiencias
 
-  //Delete
-  app.get('/delete/:email', (req, res) =>{
-    Perfil.destroy({
-      where: {
-        email: req.params['email']
-      }
-    }).then((data) => {
-      res.json(data);
-    });
-
-  })
-  //console.log(resultadoCreate);
-  res.send("Deleted");
+  }).then((data) => {
+    res.json(data)
+  }).catch(err =>
+    res.send(err.errors.message)
+  );
 });
 
-
-
-
-
-
+//Deleta um perfil pelo email
+app.delete('/delete/:email', (req, res) =>{
+  Perfil.destroy({
+    where: {
+      email: req.params['email']
+    }
+  }).then((data) => {
+    res.send("Successfully deleted");
+  }).catch(err =>
+    res.json(err.errors.message)
+  );
+});
+  
 app.listen(PORT, () => {
-  //   if (err) {
-  //     return console.error(err);
-  //   }
     return console.log(`server is listening on ${PORT}`);
   });
 
 
-/*
-db.sequelize.sync({ force: true })//Depois trocar
-  .then(()=>{
-    User.create({ firstName: 'user1' }),
-    User.create({ firstName: 'user2' })
-  });
-console.log("All models were synchronized successfully.");
-
-https://reyhanhamidi.medium.com/sequelize-automatic-database-migration-and-seeding-on-heroku-fb88cf09573b
-*/
-/*
-const { Pool, Client } = require('pg');
-const dbClient = new Client({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'postgres',
-  password: 'test',
-  port: 5432,
-});
-
-
-dbClient.connect();
-dbClient.query('SELECT * from Example', (err, res) => {
-    console.log(err, res);
-    dbClient.end();
-});
-*/

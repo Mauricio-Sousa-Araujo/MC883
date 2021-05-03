@@ -74,9 +74,6 @@ int main(int argc,char *argv[])
 
     } while (received < total);
 
-    //if (received == total)
-      //  error("ERROR storing complete response from socket");
-
     /* process response */
     printf("Response:\n%s\n", response);
     

@@ -50,24 +50,27 @@ int main(int argc, char **argv)
         new_fd = accept(sock_fd, (struct sockaddr *) &cliaddr, &clilen);        
         
         if (new_fd<0) perror("accept request failed");
-            if(!fork()){//Criamos novo processo
-                close(new_fd);
-                /* receive the request  */
-                memset(request, 0, sizeof(request));
-                total = sizeof(request)-1;
-                received = 0;
-                read(new_fd, request, total);
-                
-                /* send the request to api and take the received  */
-                sock_api = requestAPI(request, message);
-                printf("Message received: \n%s\n", message);
-                
-                write(new_fd , message , strlen(message));     
+        if(!fork() && new_fd>=0){//Criamos novo processo
 
-                close(sock_api);
-                close(new_fd);
-                exit(0);//Saídos do Processo
-            }
+            close(sock_fd);
+            /* receive the request  */
+            memset(request, 0, sizeof(request));
+            total = sizeof(request)-1;
+            received = 0;
+            read(new_fd, request, total);
+            
+            /* send the request to api and take the received  */
+            memset(message, 0, sizeof(message));
+            sock_api = requestAPI(request, message);
+            close(sock_api);
+
+            printf("Message received: \n%s\n", message);
+            write(new_fd , message , strlen(message));    
+            close(new_fd); 
+            exit(0);//Saídos do Processo
+        }
+        close(new_fd);
+
     }
     
 }

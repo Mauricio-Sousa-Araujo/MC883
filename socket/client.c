@@ -89,44 +89,65 @@ int main(int argc,char *argv[])
 
 char *buildMessage(int argc, char *argv[ ]){
 
-    char  *message=malloc(sizeMessage(argc,argv));
-    if(!strcmp(argv[3],"GET"))
-    {
-        if(argc>5)
-            sprintf(message,"%s %s%s%s HTTP/1.1\r\n",
-                strlen(argv[3])>0?argv[3]:"GET",               /* method         */
-                strlen(argv[4])>0?argv[4]:"/",                 /* path           */
-                strlen(argv[5])>0?"?":"",                      /* ?              */
-                strlen(argv[5])>0?argv[5]:"");                 /* query string   */
-        else
-            sprintf(message,"%s %s HTTP/1.1\r\n",
-                strlen(argv[3])>0?argv[3]:"GET",               /* method         */
-                strlen(argv[4])>0?argv[4]:"/");                /* path           */
-        for(int i=6;i<argc;i++)                                    /* headers        */
-            {strcat(message,argv[i]);strcat(message,"\r\n");}
-        strcat(message,"\r\n");                                /* blank line     */
-    }
-    else
-    {
-        sprintf(message,"%s %s HTTP/1.1\r\n",
-            strlen(argv[3])>0?argv[3]:"POST",                  /* method         */
-            strlen(argv[4])>0?argv[4]:"/");                    /* path           */
-        for(int i=6;i<argc;i++)                                    /* headers        */
-            {strcat(message,argv[i]);strcat(message,"\r\n");}
-        if(argc>5){
-            sprintf(message+strlen(message),"Content-Type: application/json\r\n");
-            sprintf(message+strlen(message),"Content-Length: %ld\r\n",strlen(argv[5]));
-            strcat(message,"\r\n");                                /* blank line     */
-            for(int i=5;i<argc-1;i++){
-                strcat(message,argv[i]);                                /* body           */
-                strcat(message,"&");
-            }
-            strcat(message, argv[argc-1]);
-        
-        }
-        
-    }
+    //char  *message=malloc(sizeMessage(argc,argv));
+    char  *message=malloc(5000);
+    char *json=malloc(5000);
+    
+    sprintf(message,"%s %s HTTP/1.1\r\n",
+            argv[3],                                    /* method         */
+            argv[4]);                                   /* path           */
+    
+    if(argc>5){
+        sprintf(message+strlen(message),"Content-Type: application/json\r\n");  
+        //strcat(json, "|");
+        strcat(json, "{");
+        for(int i=5; i<argc ;i++){                          /* body JSON      */
+                
+                char * token = strtok(argv[i], "=");   /* Left side     */
+                strcat(json, "\"");
+                strcat(json, token);
+                strcat(json, "\"");
+                
+                strcat(json, ":");
+                
+                token = strtok(NULL, "=");             /* Right side     */
 
+                if(strchr(token,';') == NULL)          /* if Right side is not list */
+                {
+                    strcat(json, "\"");
+                    strcat(json, token);
+                    strcat(json, "\"");
+                }
+                else                                    /* Build List */
+                {
+                    strcat(json, "[");
+
+                    token = strtok(token, ";");
+                    //printf("%s",token);
+                    while (token!=NULL)
+                    {   
+                        int i =0;
+                        while(token[i++]==' ') token++;
+                        strcat(json, "\"");
+                        strcat(json, token);
+                        strcat(json, "\"");
+                        token = strtok(NULL, ";");
+                        if(token!=NULL)   strcat(json, ",");
+                    }
+                    
+                    strcat(json, "]");
+
+                }    
+                if(i!=argc-1)   strcat(json, ",");
+        }
+        strcat(json, "}");
+        sprintf(message+strlen(message),"Content-Length: %ld\r\n", strlen(json)); 
+        strcat(message,"\r\n");                                  /* blank line     */
+        strcat(message,json);                            
+    }
+        
+    strcat(message, "\r\n");
+    //strcat(message,"Connection: close\r\n");
     return message;
 }
 
@@ -138,10 +159,6 @@ int sizeMessage(int argc, char *argv[ ]){
         message_size+=strlen("%s %s%s%s HTTP/1.1\r\n");        /* method         */
         message_size+=strlen(argv[3]);                         /* path           */
         message_size+=strlen(argv[4]);                         /* headers        */
-        if(argc>5)
-            message_size+=strlen(argv[5]);                     /* query string   */
-        for(int i=6;i<argc;i++)                                    /* headers        */
-            message_size+=strlen(argv[i])+strlen("\r\n");
         message_size+=strlen("\r\n");                          /* blank line     */
     }
     else
@@ -167,6 +184,7 @@ int sizeMessage(int argc, char *argv[ ]){
 
     }
 
+    message_size+= strlen("Connection: close\r\n");      
     /* allocate space for the message */
     return message_size;
 }

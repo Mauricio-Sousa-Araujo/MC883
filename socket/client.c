@@ -5,17 +5,19 @@
 #include <sys/socket.h> /* socket, connect */
 #include <netinet/in.h> /* struct sockaddr_in, struct sockaddr */
 #include <netdb.h> /* struct hostent, gethostbyname */
+#define MAX 4096
+#define TIMEOUT 2
+
 
 
 void error(const char *msg) { perror(msg); exit(0); }
 char *buildMessage(int argc, char *argv[ ]);
-int sizeMessage(int argc, char *argv[ ]);
+void prettyPrint(char *response);
+void printBody(char *message);
 int main(int argc,char *argv[])
 {
     int portno = (argc>2 && atoi(argv[2])>0)?atoi(argv[2]):8001;
     char *host = ( argc>1 && strlen(argv[1])>0)?argv[1]:"localhost";
-    //char *message_fmt = "GET /oi HTTP/1.0\r\n\r\n";//Hard code
-    //char *message_fmt = "POST / HTTP/1.1 \r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: 22\r\n\r\nid=dsads&name=mauricio";
     struct hostent *server;
     struct sockaddr_in serv_addr;
     int sockfd, bytes, sent, received, total;
@@ -75,7 +77,8 @@ int main(int argc,char *argv[])
     } while (received < total);
 
     /* process response */
-    printf("Response:\n%s\n", response);
+    printf("\nResponse:\n\n");
+    prettyPrint(response);
     
     /* close the socket */
     close(sockfd);
@@ -87,8 +90,8 @@ int main(int argc,char *argv[])
 char *buildMessage(int argc, char *argv[ ]){
 
     //char  *message=malloc(sizeMessage(argc,argv));
-    char  *message=malloc(5000);
-    char *json=malloc(5000);
+    char  *message=malloc(4096);
+    char *json=malloc(4096);
     
     sprintf(message,"%s %s HTTP/1.1\r\n",
             argv[3],                                    /* method         */
@@ -96,7 +99,6 @@ char *buildMessage(int argc, char *argv[ ]){
     
     if(argc>5){
         sprintf(message+strlen(message),"Content-Type: application/json\r\n");  
-        //strcat(json, "|");
         strcat(json, "{");
         for(int i=5; i<argc ;i++){                          /* body JSON      */
                 
@@ -144,44 +146,57 @@ char *buildMessage(int argc, char *argv[ ]){
     }
         
     strcat(message, "\r\n");
-    //strcat(message,"Connection: close\r\n");
     return message;
 }
 
-int sizeMessage(int argc, char *argv[ ]){
+void prettyPrint(char *response){
+    char * token = strtok(response, "[");
+    char *body;
 
-    int message_size=0;
-    if(!strcmp(argv[3],"GET"))
-    {
-        message_size+=strlen("%s %s%s%s HTTP/1.1\r\n");        /* method         */
-        message_size+=strlen(argv[3]);                         /* path           */
-        message_size+=strlen(argv[4]);                         /* headers        */
-        message_size+=strlen("\r\n");                          /* blank line     */
-    }
-    else
-    {
-        message_size+=strlen("%s %s HTTP/1.1\r\n");
-        message_size+=strlen(argv[3]);                         /* method         */
-        message_size+=strlen(argv[4]);                         /* path           */
-        for(int i=6;i<argc;i++)                                    /* headers        */
-            message_size+=strlen(argv[i])+strlen("\r\n");
-        if(argc>5){
-            message_size+=strlen("Content-Type: application/json\r\n");
-            message_size+=strlen("Content-Length: %d\r\n")+10; /* content length */
-        }
-        message_size+=strlen("\r\n");                          /* blank line     */
+    printf("HEADER:\n\n%s\n", token);
+    
+    token=strtok(NULL, "[");
+    
+    if(token==NULL)return;
+
+    //Body
+    printf("BODY:\n");
+    while(token!=NULL) {
+        strcat(body,"[" );
+        strcat(body,token );     
+        token=strtok(NULL, "[");
+    }                       
+
+    if(body!=NULL) printBody(body);
+
+
+}
+void printBody(char *message){
+    
+
+    char * token = strtok(message, ",");
+    char *space_two = "  ";
+    char *space_for = "    ";
+    char list[MAX];
+    while(token!=NULL){
         
-        if(argc>5){
-            for(int i=5;i<argc-1;i++){
-                message_size+= strlen(argv[i]);    
-                message_size+= strlen("&");                        /* body           */
-            }      
-            message_size+= strlen(argv[argc-1]);
-        }            
+        if(strchr(token,'[') != NULL && strstr(token,"[{") == NULL ){
+            memset(list, 0, sizeof(list));
+            
+            for(;;) {
+                strcat(list, token );  
+                if(strchr(token,']') != NULL) break;
+                strcat(list, ", " );
+                token=strtok(NULL, ",");
+            }
+            token = list;
 
+       }
+       if(strchr(token,'{') == NULL)  printf("\n%s%s\n",space_two, token);
+       else printf("\n%s\n",token);
+        token = strtok(NULL, ",");
+        
     }
 
-    message_size+= strlen("Connection: close\r\n");      
-    /* allocate space for the message */
-    return message_size;
+
 }

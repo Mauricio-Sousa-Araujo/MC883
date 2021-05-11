@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
   Perfil.findAll().then((data) => {
     res.json(data);
   }).catch(err =>
-    res.send(err.message)
+    res.send("Erro")
   );
 });
 
@@ -32,9 +32,11 @@ app.put('/experiencia/:email', (req, res) => {
   }).then((data) => {
     res.json(data);
   }).catch(err =>
-    res.json(err)
+    res.send("Erro ao atualizar")
   );
 });
+
+
 
 //Lista todas as pessoas (email e nome) formadas em um determinado curso;
 app.get('/curso/', (req, res) => {
@@ -47,7 +49,7 @@ app.get('/curso/', (req, res) => {
   }).then((data) => {
     res.json(data);
   }).catch(err =>
-    res.json(err.errors)
+    res.send("Erro")
   );
 });
 
@@ -63,7 +65,7 @@ app.get('/habilidade/', (req, res) => {
     }).then((data) => {
         res.json(data);
   }).catch(err =>
-    res.json(err.errors)
+    res.send("Erro")
   );
 });
 
@@ -78,7 +80,7 @@ app.get('/ano/:ano', (req, res) => {
   }).then((data) => {
     res.json(data);
   }).catch(err =>
-    res.json(err.errors)
+    res.send("Erro")
   );
 });
 
@@ -92,7 +94,7 @@ app.get('/email/:email', (req, res) => {
   }).then((data) => {
     res.json(data);
   }).catch(err =>
-    res.json(err.errors)
+    res.send("Erro")
   );
 });
 
@@ -109,9 +111,9 @@ app.post('/', (req, res) => {
         experiencias:req.body.experiencias
 
   }).then((data) => {
-    res.json(data)
+    res.send("Successfully inserted")
   }).catch(err =>
-    res.send(err.errors.message)
+    res.send("Erro ao inserir")
   );
 });
 
@@ -122,14 +124,16 @@ app.delete('/delete/:email', (req, res) =>{
       email: req.params['email']
     }
   }).then((data) => {
-    res.send("Successfully deleted");
+    res.json(data);
   }).catch(err =>
-    res.json(err.errors.message)
+    res.send("Erro ao deletar")
   );
 });
   
-app.listen(PORT, () => {
+const s=app.listen(PORT, () => {
     return console.log(`server is listening on ${PORT}`);
   });
+  
+  s.keepAliveTimeout = 1000;// Esperamos 1 segundo
 
 

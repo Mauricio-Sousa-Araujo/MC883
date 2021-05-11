@@ -17,34 +17,21 @@ Por fim, abra novamente outro aba de terminal e execute o comando no diretório 
 
 - ./client.o args
 
-
-######Por que docker?######
-
-De forma breve, utilizamos docker para encapsular nossas aplicações(api e database ) em containers para ser independente .... 
-
-#Comandos utilizados no projeto para compilar
-- gcc -o client.o client.c
-- gcc -o server.o server.c
-- docker-compose build --no-cache && docker-compose up          #Subir aplicação
-- docker rmi $(docker images -f "dangling=true" -q)             #Excluir execessos de container denominados none
-- docker container prune 
-
-
 #########################Casos de Uso###########################
 ##GETs
 #dado o email de um perfil, retornar suas informações
-- ./client.o localhost 8001 GET /email/maria_silva@gmail.com
+- ./client.o localhost 8001 GET /email/maria_silva@gmail.com 
 
 #lista todas as pessoas (email, nome e curso) formadas em um determinado ano;
 - ./client.o localhost 8001 GET /ano/2015
 
-#Lista todas as pessoas (email e nome) formadas em um determinado curso   
+#Lista todas as pessoas (email e nome) formadas em um determinado curso   -->  tem body
 - ./client.o localhost 8001 GET /curso/ "curso=Sistemas de Informação"
 
 #Lista todas as informações de todos os perfis
 - ./client.o "" "" GET /
 
-#Lista todas as pessoas (email e nome) que possuam uma determinada habilidade;
+#Lista todas as pessoas (email e nome) que possuam uma determinada habilidade;  -->  tem body
 - ./client.o localhost 8001 GET /habilidade/ "habilidade=Jurista"
 
 ##POST
@@ -59,3 +46,11 @@ De forma breve, utilizamos docker para encapsular nossas aplicações(api e data
 ##Delete
 #Deleta um perfil pelo email
 - ./client.o localhost 8001 DELETE /delete/mauricio_ploc@hotmail.com
+
+
+#Comandos utilizados no projeto para compilar
+- gcc -o client.o client.c
+- gcc -o server.o server.c
+- docker-compose build --no-cache && docker-compose up          #Subir aplicação
+- docker rmi $(docker images -f "dangling=true" -q)             #Excluir execessos de container denominados none
+- docker container prune                                        #Excluir container inativos

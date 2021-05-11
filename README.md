@@ -18,7 +18,9 @@ Por fim, abra novamente outro aba de terminal e execute o comando no diretório 
 - ./client.o args
 
 #########################Casos de Uso###########################
+
 ##GETs
+
 #dado o email de um perfil, retornar suas informações
 - ./client.o localhost 8001 GET /email/maria_silva@gmail.com 
 

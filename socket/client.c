@@ -43,7 +43,6 @@ int main(int argc,char *argv[])
     memcpy(&serv_addr.sin_addr.s_addr,server->h_addr,server->h_length);
 
     /* connect the socket */
-
     if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR connecting");
 
@@ -78,6 +77,8 @@ int main(int argc,char *argv[])
 
     /* process response */
     printf("\nResponse:\n\n");
+
+    /* Pretty print */
     prettyPrint(response);
     
     /* close the socket */
@@ -88,28 +89,29 @@ int main(int argc,char *argv[])
 
 
 char *buildMessage(int argc, char *argv[ ]){
-
-    //char  *message=malloc(sizeMessage(argc,argv));
+    
     char  *message=malloc(4096);
     char *json=malloc(4096);
     
+    /*  build message */
     sprintf(message,"%s %s HTTP/1.1\r\n",
             argv[3],                                    /* method         */
             argv[4]);                                   /* path           */
     
     if(argc>5){
-        sprintf(message+strlen(message),"Content-Type: application/json\r\n");  
+        sprintf(message+strlen(message),"Content-Type: application/json\r\n");      /* Content-Type = JSON */
         strcat(json, "{");
-        for(int i=5; i<argc ;i++){                          /* body JSON      */
+        /*Abaixo */
+        for(int i=5; i<argc ;i++){                     /* build body JSON      */
                 
-                char * token = strtok(argv[i], "=");   /* Left side     */
+                char * token = strtok(argv[i], "=");   /* take left side     */
                 strcat(json, "\"");
                 strcat(json, token);
                 strcat(json, "\"");
                 
                 strcat(json, ":");
                 
-                token = strtok(NULL, "=");             /* Right side     */
+                token = strtok(NULL, "=");             /* take right side  */
 
                 if(strchr(token,';') == NULL)          /* if Right side is not list */
                 {
@@ -119,22 +121,21 @@ char *buildMessage(int argc, char *argv[ ]){
                 }
                 else                                    /* Build List */
                 {
-                    strcat(json, "[");
+                    strcat(json, "[");                  /* Open list */
 
-                    token = strtok(token, ";");
-                    //printf("%s",token);
+                    token = strtok(token, ";");         /* take first element from list  */
                     while (token!=NULL)
                     {   
                         int i =0;
-                        while(token[i++]==' ') token++;
+                        while(token[i++]==' ') token++; 
                         strcat(json, "\"");
                         strcat(json, token);
                         strcat(json, "\"");
-                        token = strtok(NULL, ";");
+                        token = strtok(NULL, ";");      /* take next element from list  */
                         if(token!=NULL)   strcat(json, ",");
                     }
                     
-                    strcat(json, "]");
+                    strcat(json, "]");                  /* close list */
 
                 }    
                 if(i!=argc-1)   strcat(json, ",");

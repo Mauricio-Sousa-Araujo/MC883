@@ -67,7 +67,7 @@ int main(int argc, char **argv)
             printf("Message received: \n%s\n", message);
             write(new_fd , message , strlen(message));    
             close(new_fd); 
-            exit(0);//Saídos do Processo
+            exit(0);/* Exit process */
         }
         close(new_fd);
 

@@ -151,16 +151,17 @@ char *buildMessage(int argc, char *argv[ ]){
 }
 
 void prettyPrint(char *response){
+
+    /* Essa função  e sua auxiliar printBody tem apenas como o objetivo printar os dados 
+       de uma forma legível*/
     char * token = strtok(response, "[");
     char *body;
 
     printf("HEADER:\n\n%s\n", token);
     
-    token=strtok(NULL, "[");
-    
+    token=strtok(NULL, "[");    
     if(token==NULL)return;
 
-    //Body
     printf("BODY:\n");
     while(token!=NULL) {
         strcat(body,"[" );
